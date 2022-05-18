@@ -1,10 +1,14 @@
+import sys, os
+
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, BASE)
+
 from fastapi import FastAPI, File, UploadFile
 from typing import Optional
 from pydantic import BaseModel
 import aiohttp
-import asyncio
 import uvicorn
-from enum import Enum
+from Scan_files.test_mongo_db import TestDatabase
 
 class Item(BaseModel):
     name: str
@@ -40,9 +44,12 @@ async def create_upload_file(file: Optional[UploadFile] = None):
             async with session.post('https://beta.nimbus.bitdefender.net:443/liga-ac-labs-cloud/blackbox-scanner/',
                                     data={'file': await file.read()}) as response:
                 res = await response.json()
-        return res
+                db = TestDatabase()
+                await db.insert_data(res)
+                return res
+
 
 if __name__ == "__main__":
+    #uvicorn.run(app, host='0.0.0.0', port=8001)
     uvicorn.run(app, port=8001)
-
 

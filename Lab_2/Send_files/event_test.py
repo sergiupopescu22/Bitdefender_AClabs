@@ -2,22 +2,20 @@ import requests
 import Send_files.generate_events
 from pprint import pprint
 import json
-
-from Send_files.model_event import Event
-from Send_files.model_verdict import Verdict, process_verdict, file_verdict
+import asyncio
 
 def verify_risk(raspuns):
 
     if raspuns["risk_level"] == -1:
-        #print(raspuns)
-        print("se va trimite catre server")
-        with open ("{}".format(raspuns["hash"]),"rb") as file:
+        print("Se va trimite catre serviciul Blackbox")
+        with open ("Generated_files/{}".format(raspuns["hash"]),"rb") as file:
             res = requests.post("http://localhost:8001/upload_files/", files = {"file": file.read()})
             print(res.json())
+    else:
+        print("S-a gasit in CACHE/BAZA DE DATE")
 
 
-
-def testing_event():
+async def testing_event():
 
     events = []
 
@@ -26,15 +24,15 @@ def testing_event():
         events = json.loads(data)
 
     for event in events:
-        #pprint(event)
         res = requests.post("http://localhost:8000/send_event", json=event)
         verdict = res.json()
+
         print()
-        pprint(verdict)
-        #print()
-        #print(verdict["file"])
+        pprint(verdict["file"])
+
         verify_risk(verdict["file"])
-        print("------------------------\n")
+
+        print("------------------------")
 
 if __name__ == "__main__":
-    testing_event()
+    asyncio.run(testing_event())

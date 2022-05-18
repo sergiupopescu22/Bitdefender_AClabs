@@ -197,7 +197,7 @@ def generate_random_file(operating_system_type: str) -> str:
     file_bytes = bytes(file_contents)
 
     file_hash = hashlib.md5(file_bytes).hexdigest()
-    with open(file_hash, "wb") as file_handle:
+    with open("Generated_files/{}".format(file_hash), "wb") as file_handle:
         file_handle.write(file_bytes)
 
     return file_hash
