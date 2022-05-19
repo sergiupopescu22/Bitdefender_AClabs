@@ -1,5 +1,6 @@
 import sys, os
 import aioredis
+from prometheus_fastapi_instrumentator import Instrumentator
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE)
@@ -40,6 +41,7 @@ async def send_event(event: Event):
         if risk is not None:
             r = risk['risk_level']
             await redis.set(event.file.file_hash, f"{r}")
+            await redis.expire(event.file.file_hash, 20)
             print("S-a gasit deja rezultatul in BAZA DE DATE")
 
     await redis.close()
@@ -47,7 +49,7 @@ async def send_event(event: Event):
     return Verdict(file = file_verdict(hash = event.file.file_hash,risk_level = r),
                                  process = process_verdict(hash = event.last_access.hash, risk_level = r))
 
-
+Instrumentator().instrument(app).expose(app)
 if __name__ == "__main__":
     #uvicorn.run(app, host='0.0.0.0', port=8000)
     uvicorn.run(app, port=8000)
